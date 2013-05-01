@@ -40,6 +40,7 @@ import com.google.gwt.safehtml.client.SafeHtmlTemplates;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
+import com.google.gwt.safehtml.shared.SafeUri;
 import com.google.gwt.user.client.Event;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
@@ -79,14 +80,17 @@ public class ChosenImpl {
     SafeHtml contentSingle(String chznSingleClass, String chznDefaultClass, String defaultText,
             String dropClass, String chznSearchClass, String chznResultClass, SafeStyles horizontalOffset);
 
+    @Template("<img src=\"{0}\">{1}")
+    SafeHtml optionContent(SafeUri iconUri, String content);
+
     @Template("<li id=\"{0}\" class=\"{1}\">{2}</li>")
-    SafeHtml group(String id, String groupResultClass, String content);
+    SafeHtml group(String id, String groupResultClass, SafeHtml content);
 
     @Template("<li class=\"{0}\">{1}\"<span></span>\"</li>")
     SafeHtml noResults(String noResultsClass, String content);
 
     @Template("<li id=\"{0}\" class=\"{1}\" style=\"{2}\">{3}</li>")
-    SafeHtml option(String id, String groupResultClass, SafeStyles style, String content);
+    SafeHtml option(String id, String groupResultClass, SafeStyles style, SafeHtml content);
 
   }
 
@@ -713,6 +717,15 @@ public class ChosenImpl {
 
   }
 
+  private SafeHtml buildContent(SafeUri icon, String value) {
+      if (icon != null && icon.asString().length() > 0) {
+          SafeHtml html = ChozenTemplate.templates.optionContent(icon,value);
+          return html;
+      } else {
+          return SafeHtmlUtils.fromTrustedString(value);
+      }
+  }
+
   private void resultActivate(GQuery query) {
     query.addClass(css.activeResult());
 
@@ -721,15 +734,17 @@ public class ChosenImpl {
   private SafeHtml resultAddGroup(GroupItem group) {
     if (!group.isDisabled()) {
       group.domId = containerId + "_g_" + group.getArrayIndex();
+
+
         if (!options.isAllowGroupSelect()) {
-          return ChozenTemplate.templates.group(group.domId, css.groupResult(), group.getLabel());
+          return ChozenTemplate.templates.group(group.domId, css.groupResult(), buildContent(group.getIcon(), group.getLabel()));
         } else {
           if (!group.isDisabled()) {
             String classes = parseOptionForStyleInfo(group);
             String style = (group.getStyle() == null ? "" : group.getStyle());
             SafeStyles safeStyles = SafeStylesUtils.fromTrustedString(style);
               return ChozenTemplate.templates.option(group.getDomId(), classes.toString().trim(), safeStyles,
-                                                       group.getLabel());
+                      buildContent(group.getIcon(), group.getLabel()));
           }
         }
     }
@@ -743,7 +758,7 @@ public class ChosenImpl {
             String style = option.getStyle();
             SafeStyles safeStyles = SafeStylesUtils.fromTrustedString(option.getStyle());
             return ChozenTemplate.templates.option(option.getDomId(), classes.toString().trim(), safeStyles,
-                                                   option.getText());
+                    buildContent(option.getIcon(), option.getText()));
         }
         return null;
     }
@@ -845,7 +860,7 @@ public class ChosenImpl {
       searchChoices.find("li." + css.searchChoice()).remove();
       choices = 0;
     } else if (!isMultiple) {
-      selectedItem.addClass(css.chznDefault()).find("span").text(defaultText);
+      selectedItem.addClass(css.chznDefault()).find("span").html(defaultText);
 
       if (selectElement.getOptions().getLength() <= options.getDisableSearchThreshold()) {
         container.addClass(css.chznContainerSingleNoSearch());
@@ -879,7 +894,7 @@ public class ChosenImpl {
         if (optionItem.isSelected() && isMultiple) {
           choiceBuild(optionItem);
         } else if (optionItem.isSelected() && !isMultiple) {
-          selectedItem.removeClass(css.chznDefault()).find("span").text(optionItem.getText());
+          selectedItem.removeClass(css.chznDefault()).find("span").html(optionItem.getHtml());
           if (allowSingleDeselect) {
             singleDeselectControlBuild();
           }
@@ -920,9 +935,12 @@ public class ChosenImpl {
         choiceBuild(item);
       } else {
           if (item instanceof GroupItem){
-              selectedItem.find("span").text(((GroupItem) item).getLabel());
+              selectedItem.find("span").html(
+                      buildContent(item.getIcon(), ((GroupItem) item).getLabel()).asString());
           } else {
-              selectedItem.find("span").text(item.getText());
+              selectedItem.find("span").html(
+                      buildContent(item.getIcon(), item.getValue()).asString()
+              );
           }
           if (allowSingleDeselect) {
               singleDeselectControlBuild();
@@ -977,7 +995,7 @@ public class ChosenImpl {
       firstoption.setSelected(true);
     }
 
-    selectedItem.find("span").text(defaultText);
+    selectedItem.find("span").html(defaultText);
     if (!isMultiple) {
       selectedItem.addClass(css.chznDefault());
     }
@@ -1075,7 +1093,7 @@ public class ChosenImpl {
       styleBlock.append(style).append(':').append(searchField.css(style));
     }
 
-    GQuery div = $("<div />").attr("style", styleBlock.toString()).text(searchField.val());
+    GQuery div = $("<div />").attr("style", styleBlock.toString()).html(searchField.val());
     $("body").append(div);
 
     int w = div.width() + 25;
@@ -1257,18 +1275,26 @@ public class ChosenImpl {
 
     String cssClasses = isRTL ? css.chznContainer() + " " + css.chznRtl() : css.chznContainer();
 
+    if (options.getContainerStyle() != null) {
+        cssClasses += " " + options.getContainerStyle();
+    }
+
     GQuery containerTemp =
         $(ChozenTemplate.templates.container(containerId, cssClasses).asString()).width(fWidth);
 
     SafeStyles horizontalOffset = isRTL ? SafeStylesUtils.forRight(HORIZONTAL_OFFSET,
             Style.Unit.PX) : SafeStylesUtils.forLeft(HORIZONTAL_OFFSET, Style.Unit.PX);
 
+
+
     if (isMultiple) {
-      containerTemp.html(ChozenTemplate.templates.contentMultiple(css.chznChoices(),
+      containerTemp.html(ChozenTemplate.templates.contentMultiple(
+              css.chznChoices() +((options.getContainerStyle() != null)  ? " " + options.getContainerStyle() : ""),
           css.searchField(), defaultText, css.defaultClass(), css.chznDrop(), css.chznResults(), horizontalOffset)
           .asString());
     } else {
-      containerTemp.html(ChozenTemplate.templates.contentSingle(css.chznSingle(),
+      containerTemp.html(ChozenTemplate.templates.contentSingle(
+              css.chznSingle() + ((options.getContainerStyle() != null)  ? " " + options.getContainerStyle() : ""),
           css.chznDefault(), defaultText, css.chznDrop(), css.chznSearch(), css.chznResults(), horizontalOffset)
           .asString());
     }
@@ -1361,7 +1387,7 @@ public class ChosenImpl {
         continue;
       }
 
-      if (item.isGroup()) {
+      if (!options.isAllowGroupSelect() && item.isGroup()) {
           if (!options.isAllowShowEmptyGroups()) {
               $('#' + item.getDomId()).css("display", "none");
           }
@@ -1372,7 +1398,7 @@ public class ChosenImpl {
           boolean found = false;
           String resultId = option.getDomId();
           GQuery result = $("#" + resultId);
-          String optionContent = option.getHtml();
+          String optionContent = option.getText();
 
           if (regex.test(optionContent)) {
             found = true;
@@ -1388,6 +1414,8 @@ public class ChosenImpl {
           }
 
           if (found) {
+            // Search only text, but display for option html
+            optionContent = result.html();
             String text;
             if (searchText.length() > 0) {
               text = zregex.replace(optionContent, "<em>$1</em>");

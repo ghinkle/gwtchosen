@@ -26,6 +26,7 @@ import com.google.gwt.event.dom.client.DomEvent.Type;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.i18n.client.HasDirection.Direction;
 import com.google.gwt.query.client.GQuery;
+import com.google.gwt.safehtml.shared.SafeUri;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -182,6 +183,13 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
     public void addGroup(String group, String value) {
         insertGroup(group, value, -1);
     }
+    public void addGroup(String group, String value, String styleClassName) {
+        insertGroup(group, value, styleClassName, null, -1);
+    }
+    public void addGroup(String group, String value, String styleClassName, SafeUri iconUri) {
+        insertGroup(group, value, styleClassName, iconUri, -1);
+    }
+
 
 	public HandlerRegistration addHidingDropDownHandler(
 			HidingDropDownHandler handler) {
@@ -310,20 +318,33 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
 		return options.getPlaceholderTextSingle();
 	}
 
-	/**
-	 * Insert a group to the list box.
-	 * 
-	 * @param group
-	 *            the text of the group to be added
-	 * @param index
-	 *            the index at which to insert it
-	 */
+
+
     public void insertGroup(String group, String value, int index) {
+        insertGroup(group, value, null, null, index);
+    }
+        /**
+       * Insert a group to the list box.
+       *
+       * @param group
+       *            the text of the group to be added
+       * @param index
+       *            the index at which to insert it
+       */
+    public void insertGroup(String group, String value, String styleClassName, SafeUri iconUri, int index) {
         GQuery optGroup = $("<optgroup></optgroup>").attr("label", group);
         GQuery select = $(getElement());
 
         if (value != null) {
             optGroup.attr("groupId", value);
+        }
+
+        if (styleClassName != null) {
+            optGroup.attr("class", styleClassName);
+        }
+
+        if (iconUri != null) {
+            optGroup.attr("data-icon", iconUri.asString());
         }
 
         int itemCount = SelectElement.as(getElement()).getLength();
@@ -336,20 +357,52 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
         }
     }
 
-    /**
-	 * Adds an item to the an optgroup of the list box. If no optgroup exists,
-	 * the item will be add at the end ot the list box.
-	 * 
-	 * @param item
-	 *            the text of the item to be added
-	 * @param value
-	 *            the value of the item to be added
-	 * @param itemIndex
-	 *            the index inside the optgroup at which to insert the item
-	 * @param groupIndex
-	 *            the index of the optGroup where the item will be inserted
-	 */
-	public void insertItemToGroup(String item, Direction dir, String value,
+    public void addItem(String item, Direction dir, String value, String styleClassName, SafeUri iconUri) {
+        insertItem(item, dir, value, styleClassName, iconUri, -1);
+    }
+
+
+    public void insertItem(String item, Direction dir, String value, String styleClassName, SafeUri iconUri, int index) {
+        SelectElement select = getElement().cast();
+        OptionElement option = Document.get().createOptionElement();
+        setOptionText(option, item, dir);
+        option.setValue(value);
+
+        if (styleClassName != null) {
+            option.setClassName(styleClassName);
+        }
+
+        if (iconUri != null) {
+            option.setAttribute("data-icon", iconUri.asString());
+        }
+
+        int itemCount = select.getLength();
+        if (index < 0 || index > itemCount) {
+            index = itemCount;
+        }
+        if (index == itemCount) {
+            select.add(option, null);
+        } else {
+            OptionElement before = select.getOptions().getItem(index);
+            select.add(option, before);
+        }
+
+    }
+
+        /**
+       * Adds an item to the an optgroup of the list box. If no optgroup exists,
+       * the item will be add at the end ot the list box.
+       *
+       * @param item
+       *            the text of the item to be added
+       * @param value
+       *            the value of the item to be added
+       * @param itemIndex
+       *            the index inside the optgroup at which to insert the item
+       * @param groupIndex
+       *            the index of the optGroup where the item will be inserted
+       */
+	public void insertItemToGroup(String item, Direction dir, String value, String styleClassName, SafeUri iconUri,
 			 int groupIndex, int itemIndex) {
 
 		GQuery select = $(getElement());
@@ -373,6 +426,14 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
 		setOptionText(option, item, dir);
 		option.setValue(value);
 
+        if (styleClassName != null) {
+            option.setClassName(styleClassName);
+        }
+
+        if (iconUri != null) {
+            optgroup.attr("data-icon", iconUri.asString());
+        }
+
 		int itemCount = optgroup.children().size();
 
 		if (itemIndex < 0 || itemIndex > itemCount - 1) {
@@ -384,17 +445,21 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
 
 	}
 
-	/**
-	 * Adds an item to the an optgroup of the list box. If no optgroup exists,
-	 * the item will be add at the end ot the list box.
-	 * 
-	 * @param item
-	 *            the text of the item to be added
-	 * @param itemIndex
-	 *            the index inside the optgroup at which to insert the item
-	 * @param groupIndex
-	 *            the index of the optGroup where the item will be inserted
-	 */
+    public void insertItemToGroup(String item, Direction dir, String value,
+                                  int groupIndex, int itemIndex) {
+        insertItemToGroup(item, dir, value, null, null, groupIndex, itemIndex);
+    }
+        /**
+       * Adds an item to the an optgroup of the list box. If no optgroup exists,
+       * the item will be add at the end ot the list box.
+       *
+       * @param item
+       *            the text of the item to be added
+       * @param itemIndex
+       *            the index inside the optgroup at which to insert the item
+       * @param groupIndex
+       *            the index of the optGroup where the item will be inserted
+       */
 
 	public void insertItemToGroup(String item, int groupIndex, int itemIndex) {
 		insertItemToGroup(item, null, item, groupIndex, itemIndex);

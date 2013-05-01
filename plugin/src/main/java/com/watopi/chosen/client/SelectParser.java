@@ -26,6 +26,8 @@ import com.google.gwt.dom.client.OptionElement;
 import com.google.gwt.dom.client.SelectElement;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.query.client.js.JsObjectArray;
+import com.google.gwt.safehtml.shared.SafeUri;
+import com.google.gwt.safehtml.shared.UriUtils;
 
 public class SelectParser {
 
@@ -86,6 +88,8 @@ public class SelectParser {
 
     private String value;
 
+    private SafeUri icon;
+
     public int getArrayIndex() {
       return arrayIndex;
     }
@@ -123,6 +127,10 @@ public class SelectParser {
 
     public boolean isSelected() {
       return selected;
+    }
+
+    public SafeUri getIcon() {
+      return icon;
     }
 
     public void setArrayIndex(int arrayIndex) {
@@ -167,6 +175,10 @@ public class SelectParser {
 
     public void setValue(String value) {
       this.value = value;
+    }
+
+    public void setIcon(SafeUri icon) {
+      this.icon = icon;
     }
   }
 
@@ -229,6 +241,15 @@ public class SelectParser {
     item.setDisabled(group.isDisabled());
     item.setValue(group.getAttribute("groupid"));
 
+    if (group.getClassName() != null) {
+      item.setClasses(group.getClassName());
+    }
+    item.setStyle(getCssText(group.getStyle()));
+
+    String icon = group.getAttribute("data-icon");
+    if (icon != null && !icon.isEmpty()) {
+        item.setIcon(UriUtils.fromTrustedString(icon));
+    }
     parsed.add(item);
 
     NodeList<Node> children = group.getChildNodes();
@@ -277,6 +298,12 @@ public class SelectParser {
       item.classes = option.getClassName();
       item.style = getCssText(option.getStyle());
       item.empty = false;
+
+      String icon = option.getAttribute("data-icon");
+      if (icon != null && !icon.isEmpty()) {
+        item.setIcon(UriUtils.fromTrustedString(icon));
+      }
+
 
     } else {
       item.empty = true;

@@ -34,8 +34,9 @@ public class ChosenOptions {
   private boolean singleBackstrokeDelete;
   private boolean allowShowEmptyGroups;
   private Resources resources;
+  private String containerStyle;
 
-  public ChosenOptions() {
+    public ChosenOptions() {
     setDefault();
   }
 
@@ -157,4 +158,16 @@ public class ChosenOptions {
     public void setAllowShowEmptyGroups(boolean allowShowEmptyGroups) {
         this.allowShowEmptyGroups = allowShowEmptyGroups;
     }
+
+
+
+    public void setContainerStyle(String containerStyle) {
+        this.containerStyle = containerStyle;
+    }
+
+    public String getContainerStyle() {
+        return containerStyle;
+    }
+
+
 }
