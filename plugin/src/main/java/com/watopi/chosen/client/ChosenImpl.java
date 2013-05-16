@@ -939,7 +939,7 @@ public class ChosenImpl {
                       buildContent(item.getIcon(), ((GroupItem) item).getLabel()).asString());
           } else {
               selectedItem.find("span").html(
-                      buildContent(item.getIcon(), item.getValue()).asString()
+                      buildContent(item.getIcon(), item.getText()).asString()
               );
           }
           if (allowSingleDeselect) {
