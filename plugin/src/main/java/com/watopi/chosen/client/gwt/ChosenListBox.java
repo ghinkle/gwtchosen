@@ -279,6 +279,7 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
     public void forceRedraw() {
 		$(getElement()).as(Chosen).destroy()
 				.chosen(options, ensureChosenHandlers());
+		setVisible(visible);
 	}
 
 	protected GQuery getChosenElement() {
