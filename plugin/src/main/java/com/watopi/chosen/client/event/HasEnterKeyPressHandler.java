@@ -19,8 +19,10 @@
 
 package com.watopi.chosen.client.event;
 
-public interface HasAllChosenHandlers extends HasChosenChangeHandlers,
-		HasHidingDropDownHandlers, HasMaxSelectedHandlers, HasReadyHandlers,
-		HasShowingDropDownHandlers, HasUpdatedHandlers, HasEnterKeyPressHandler {
+import com.google.gwt.event.shared.HasHandlers;
+import com.google.web.bindery.event.shared.HandlerRegistration;
+import com.watopi.chosen.client.event.EnterKeyPressEvent.EnterKeyPressHandler;
 
+public interface HasEnterKeyPressHandler extends HasHandlers {
+  HandlerRegistration addEnterKeyPressHandler(EnterKeyPressHandler handler);
 }

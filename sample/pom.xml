@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.watopi</groupId>
 		<artifactId>gwtchosen-project</artifactId>
-		<version>1.1.0-Evergage.4</version>
+		<version>1.1.0-Evergage.5</version>
 	</parent>
 
 	<name>Chosen gQuery plugin example</name>
@@ -17,8 +17,8 @@
 		<dependency>
 			<groupId>com.watopi</groupId>
 			<artifactId>gwtchosen</artifactId>
-			<version>1.1.0</version>
-			<scope>provided</scope>
+			<version>1.1.0-Evergage.5</version>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.gwtquery</groupId>
@@ -46,7 +46,8 @@
 						<phase>prepare-package</phase>
 						<goals>
 							<goal>compile</goal>
-						</goals>
+                            <goal>resources</goal>
+                        </goals>
 					</execution>
 				</executions>
 			</plugin>

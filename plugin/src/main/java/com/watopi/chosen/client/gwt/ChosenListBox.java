@@ -35,18 +35,13 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import com.watopi.chosen.client.ChosenImpl;
 import com.watopi.chosen.client.ChosenOptions;
-import com.watopi.chosen.client.event.ChosenChangeEvent;
+import com.watopi.chosen.client.event.*;
 import com.watopi.chosen.client.event.ChosenChangeEvent.ChosenChangeHandler;
-import com.watopi.chosen.client.event.HasAllChosenHandlers;
-import com.watopi.chosen.client.event.HidingDropDownEvent;
+import com.watopi.chosen.client.event.EnterKeyPressEvent.EnterKeyPressHandler;
 import com.watopi.chosen.client.event.HidingDropDownEvent.HidingDropDownHandler;
-import com.watopi.chosen.client.event.MaxSelectedEvent;
 import com.watopi.chosen.client.event.MaxSelectedEvent.MaxSelectedHandler;
-import com.watopi.chosen.client.event.ReadyEvent;
 import com.watopi.chosen.client.event.ReadyEvent.ReadyHandler;
-import com.watopi.chosen.client.event.ShowingDropDownEvent;
 import com.watopi.chosen.client.event.ShowingDropDownEvent.ShowingDropDownHandler;
-import com.watopi.chosen.client.event.UpdatedEvent;
 import com.watopi.chosen.client.event.UpdatedEvent.UpdatedHandler;
 
 import static com.google.gwt.query.client.GQuery.$;
@@ -255,13 +250,18 @@ public class ChosenListBox extends ListBox implements HasAllChosenHandlers{
 		return ensureChosenHandlers().addHandler(
 				ShowingDropDownEvent.getType(), handler);
 	}
-	
+
 	public HandlerRegistration addUpdatedHandler(UpdatedHandler handler) {
 		return ensureChosenHandlers().addHandler(
 				UpdatedEvent.getType(), handler);
 	}
 
-	protected EventBus ensureChosenHandlers() {
+    public HandlerRegistration addEnterKeyPressHandler(EnterKeyPressHandler handler) {
+        return ensureChosenHandlers().addHandler(
+                EnterKeyPressEvent.getType(), handler);
+    }
+
+    protected EventBus ensureChosenHandlers() {
 		return chznHandlerManager == null ? chznHandlerManager = new SimpleEventBus()
 				: chznHandlerManager;
 	}

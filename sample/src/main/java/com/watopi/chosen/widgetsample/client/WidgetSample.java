@@ -18,7 +18,6 @@
  */
 package com.watopi.chosen.widgetsample.client;
 
-import static com.google.gwt.query.client.GQuery.$;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.query.client.Function;
@@ -27,147 +26,195 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
-
-import com.watopi.chosen.client.event.ChosenChangeEvent;
+import com.watopi.chosen.client.event.*;
 import com.watopi.chosen.client.event.ChosenChangeEvent.ChosenChangeHandler;
-import com.watopi.chosen.client.event.HidingDropDownEvent;
+import com.watopi.chosen.client.event.EnterKeyPressEvent.EnterKeyPressHandler;
 import com.watopi.chosen.client.event.HidingDropDownEvent.HidingDropDownHandler;
-import com.watopi.chosen.client.event.MaxSelectedEvent;
 import com.watopi.chosen.client.event.MaxSelectedEvent.MaxSelectedHandler;
-import com.watopi.chosen.client.event.ReadyEvent;
 import com.watopi.chosen.client.event.ReadyEvent.ReadyHandler;
-import com.watopi.chosen.client.event.ShowingDropDownEvent;
 import com.watopi.chosen.client.event.ShowingDropDownEvent.ShowingDropDownHandler;
 import com.watopi.chosen.client.gwt.ChosenListBox;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.google.gwt.query.client.GQuery.$;
+
 public class WidgetSample implements EntryPoint {
 
-  private static final class MyEventHandlers implements ChosenChangeHandler, HidingDropDownHandler,
-      ShowingDropDownHandler, MaxSelectedHandler, ReadyHandler {
+    private static final class MyEventHandlers implements ChosenChangeHandler, HidingDropDownHandler,
+            ShowingDropDownHandler, MaxSelectedHandler, ReadyHandler, EnterKeyPressHandler {
 
-    private String elementId;
+        private String elementId;
 
-    public MyEventHandlers(String id) {
-      this.elementId = id;
+        public MyEventHandlers(String id) {
+            this.elementId = id;
 
+        }
+
+        private void log(String eventName, String additional) {
+            $("#log").append(
+                    "<span class=\"log-line\">" + eventName + " fired by <em>" + elementId + "</em> "
+                            + additional + "</span>").scrollTop($("#log").get(0).getScrollHeight());
+        }
+
+        public void onReady(ReadyEvent event) {
+            log("ReadyEvent", "");
+
+        }
+
+        public void onMaxSelected(MaxSelectedEvent event) {
+            log("MaxSelectedEvent", "");
+        }
+
+        public void onShowingDropDown(ShowingDropDownEvent event) {
+            log("ShowingDropDownEvent", "");
+
+        }
+
+        public void onHidingDropdown(HidingDropDownEvent event) {
+            log("HidingDropDownEvent", "");
+
+        }
+
+        public void onChange(ChosenChangeEvent event) {
+            String additional = (event.isSelection() ? ": selection of " : ": deselection of ") + event.getValue();
+            log("ChangeEvent on", additional);
+
+        }
+
+        public void onEnterKeyPressed(EnterKeyPressEvent event) {
+            //TODO: Implement
+        }
     }
 
-    private void log(String eventName, String additional) {
-      $("#log").append(
-          "<span class=\"log-line\">" + eventName + " fired by <em>" + elementId + "</em> "
-              + additional + "</span>").scrollTop($("#log").get(0).getScrollHeight());
+    private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
+
+    private static String[] teamsGroup = new String[]{
+            "NFC EAST", "NFC NORTH", "NFC SOUTH", "NFC WEST", "AFC EAST", "AFC NORTH", "AFC SOUTH", "AFC WEST"
+    };
+
+    private static String[] teams = new String[]{
+            "Dallas Cowboys", "New York Giants", "Philadelphia Eagles", "Washington Redskins",
+            "Chicago Bears", "Detroit Lions", "Green Bay Packers", "Minnesota Vikings",
+            "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints", "Tampa Bay Buccaneers",
+            "Arizona Cardinals", "St. Louis Rams", "San Francisco 49ers", "Seattle Seahawks",
+            "Buffalo Bills", "Miami Dolphins", "New England Patriots", "New York Jets",
+            "Baltimore Ravens", "Cincinnati Bengals", "Cleveland Browns", "Pittsburgh Steelers",
+            "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Tennessee Titans",
+            "Denver Broncos", "Kansas City Chiefs", "Oakland Raiders", "San Diego Chargers"};
+
+    @UiTemplate("View.ui.xml")
+    interface MyUiBinder extends UiBinder<Widget, WidgetSample> {
     }
 
-    public void onReady(ReadyEvent event) {
-      log("ReadyEvent", "");
+    @UiField
+    ChosenListBox countriesChosen;
 
+    @UiField(provided = true)
+    ChosenListBox teamChosen;
+
+    public void onModuleLoad() {
+
+        if (!ChosenListBox.isSupported()) {
+            $("#browserWarning").show();
+        }
+
+        teamChosen = new ChosenListBox(true);
+
+        teamChosen.addEnterKeyPressHandler(new EnterKeyPressHandler() {
+            public void onEnterKeyPressed(EnterKeyPressEvent event) {
+                handleEnterKeyPressHandler(teamChosen, event);
+            }
+        });
+
+        Widget w = uiBinder.createAndBindUi(this);
+        init();
+        RootPanel.get("view").add(w);
     }
 
-    public void onMaxSelected(MaxSelectedEvent event) {
-      log("MaxSelectedEvent", "");
+    private void handleEnterKeyPressHandler(ChosenListBox chosenListBox, EnterKeyPressEvent event) {
+        String newItem = event.getCurrentSearchText();
+        List<String> currentSelected = WidgetSample.getMultiValuesByText(chosenListBox);
+        currentSelected.add(newItem);
+
+        teamChosen.addItem(newItem);
+
+        WidgetSample.setMultiValuesByText(chosenListBox, currentSelected);
+        teamChosen.update();
     }
 
-    public void onShowingDropDown(ShowingDropDownEvent event) {
-      log("ShowingDropDownEvent", "");
+    private void bind() {
+        MyEventHandlers teamEventHandler = new MyEventHandlers("multiple ChosenListBox");
+        teamChosen.addChosenChangeHandler(teamEventHandler);
+        teamChosen.addHidingDropDownHandler(teamEventHandler);
+        teamChosen.addMaxSelectedHandler(teamEventHandler);
+        teamChosen.addShowingDropDownHandler(teamEventHandler);
+        teamChosen.addReadyHandler(teamEventHandler);
+        teamChosen.addEnterKeyPressHandler(teamEventHandler);
+        teamChosen.setVisible(true);
 
+
+        MyEventHandlers countryEventHandler = new MyEventHandlers("single ChosenListBox");
+        countriesChosen.addChosenChangeHandler(countryEventHandler);
+        countriesChosen.addHidingDropDownHandler(countryEventHandler);
+        countriesChosen.addMaxSelectedHandler(countryEventHandler);
+        countriesChosen.addShowingDropDownHandler(countryEventHandler);
+        countriesChosen.addReadyHandler(countryEventHandler);
+
+        $("#clearLogButton").click(new Function() {
+            @Override
+            public void f() {
+                $("#log").empty();
+            }
+        });
     }
 
-    public void onHidingDropdown(HidingDropDownEvent event) {
-      log("HidingDropDownEvent", "");
+    private void init() {
 
+        teamChosen.addGroup(teamsGroup[0]);
+
+        // init options for teamchosen
+        int i = 0;
+        for (String team : teams) {
+            if (i % 4 == 0) {
+                teamChosen.addGroup(teamsGroup[i / 4]);
+            }
+            teamChosen.addItemToGroup(team);
+            i++;
+        }
+
+        // init default place holder text
+        teamChosen.setPlaceholderText("Choose your favourite teams...");
+
+        teamChosen.setWidth("300px");
+
+        bind();
     }
 
-    public void onChange(ChosenChangeEvent event) {
-      String additional = (event.isSelection() ? ": selection of " : ": deselection of ") + event.getValue();
-      log("ChangeEvent on",  additional);
+    public static List<String> getMultiValuesByText(ChosenListBox chosenListBox) {
+        List<String> selectedValues = new LinkedList<String>();
 
+        int count = chosenListBox.getItemCount();
+
+        for (int i = 0; i < count; i++) {
+            if (chosenListBox.isItemSelected(i)) {
+                selectedValues.add(chosenListBox.getItemText(i));
+            }
+        }
+
+        return selectedValues;
     }
 
-  }
-  
-  private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
-  
-  private static String[] teamsGroup = new String[] {
-	  "NFC EAST", "NFC NORTH", "NFC SOUTH", "NFC WEST","AFC EAST", "AFC NORTH", "AFC SOUTH", "AFC WEST"
-  };
-  
-  private static String[] teams = new String[] {
-      "Dallas Cowboys", "New York Giants", "Philadelphia Eagles", "Washington Redskins",
-      "Chicago Bears", "Detroit Lions", "Green Bay Packers", "Minnesota Vikings",
-      "Atlanta Falcons", "Carolina Panthers", "New Orleans Saints", "Tampa Bay Buccaneers",
-      "Arizona Cardinals", "St. Louis Rams", "San Francisco 49ers", "Seattle Seahawks",
-      "Buffalo Bills", "Miami Dolphins", "New England Patriots", "New York Jets",
-      "Baltimore Ravens", "Cincinnati Bengals", "Cleveland Browns", "Pittsburgh Steelers",
-      "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Tennessee Titans",
-      "Denver Broncos", "Kansas City Chiefs", "Oakland Raiders", "San Diego Chargers"};
+    public static void setMultiValuesByText(ChosenListBox chosenListBox, List<String> matchValues) {
+        HashSet<String> matchValueSet = new HashSet<String>(matchValues);
 
-  @UiTemplate("View.ui.xml")
-  interface MyUiBinder extends UiBinder<Widget, WidgetSample> {
-  }
+        int count = chosenListBox.getItemCount();
 
-  @UiField
-  ChosenListBox countriesChosen;
-
-  @UiField(provided = true)
-  ChosenListBox teamChosen;
-
-  public void onModuleLoad() {
-    
-    if (!ChosenListBox.isSupported()){
-      $("#browserWarning").show();
+        for (int i = 0; i < count; i++) {
+            chosenListBox.setItemSelected(i, matchValueSet.contains(chosenListBox.getItemText(i)));
+        }
     }
-    
-    teamChosen = new ChosenListBox(true);
-    
-
-    Widget w = uiBinder.createAndBindUi(this);
-    init();
-    RootPanel.get("view").add(w);
-  }
-
-  private void bind() {
-    MyEventHandlers teamEventHandler = new MyEventHandlers("multiple ChosenListBox");
-    teamChosen.addChosenChangeHandler(teamEventHandler);
-    teamChosen.addHidingDropDownHandler(teamEventHandler);
-    teamChosen.addMaxSelectedHandler(teamEventHandler);
-    teamChosen.addShowingDropDownHandler(teamEventHandler);
-    teamChosen.addReadyHandler(teamEventHandler);
-
-    MyEventHandlers countryEventHandler = new MyEventHandlers("single ChosenListBox");
-    countriesChosen.addChosenChangeHandler(countryEventHandler);
-    countriesChosen.addHidingDropDownHandler(countryEventHandler);
-    countriesChosen.addMaxSelectedHandler(countryEventHandler);
-    countriesChosen.addShowingDropDownHandler(countryEventHandler);
-    countriesChosen.addReadyHandler(countryEventHandler);
-
-    $("#clearLogButton").click(new Function() {
-      @Override
-      public void f() {
-        $("#log").empty();
-      }
-    });
-  }
-
-  private void init() {
-
-	teamChosen.addGroup(teamsGroup[0]);
-	  
-    // init options for teamchosen
-	int i = 0;
-    for (String team : teams) {
-      if (i % 4 == 0){
-        teamChosen.addGroup(teamsGroup[i/4]);
-      }
-      teamChosen.addItemToGroup(team);
-      i++;
-    }
-
-    // init default place holder text
-    teamChosen.setPlaceholderText("Choose your favourite teams...");
-
-    teamChosen.setWidth("300px");
-
-    bind();
-  }
 
 }

@@ -1,8 +1,9 @@
 <module rename-to='WidgetSample'>
+    <inherits name='com.watopi.chosen.Chosen' />
     <inherits name='com.watopi.chosen.widgetsample.WidgetSample'/>
 
 	<set-property name="user.agent" value="safari" />
-	
+
 	<!-- enable super dev mode in dev -->
 	<add-linker name="xsiframe"/>
 	<set-configuration-property name="devModeRedirectEnabled" value="true"/>

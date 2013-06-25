@@ -21,13 +21,7 @@ package com.watopi.chosen.client;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.RepeatingCommand;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
-import com.google.gwt.dom.client.NodeList;
-import com.google.gwt.dom.client.OptionElement;
-import com.google.gwt.dom.client.SelectElement;
-import com.google.gwt.dom.client.Style;
-import com.google.gwt.dom.client.StyleInjector;
+import com.google.gwt.dom.client.*;
 import com.google.gwt.i18n.client.LocaleInfo;
 import com.google.gwt.query.client.Function;
 import com.google.gwt.query.client.GQuery;
@@ -47,13 +41,7 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.watopi.chosen.client.SelectParser.GroupItem;
 import com.watopi.chosen.client.SelectParser.OptionItem;
 import com.watopi.chosen.client.SelectParser.SelectItem;
-import com.watopi.chosen.client.event.ChosenChangeEvent;
-import com.watopi.chosen.client.event.ChosenEvent;
-import com.watopi.chosen.client.event.HidingDropDownEvent;
-import com.watopi.chosen.client.event.MaxSelectedEvent;
-import com.watopi.chosen.client.event.ReadyEvent;
-import com.watopi.chosen.client.event.ShowingDropDownEvent;
-import com.watopi.chosen.client.event.UpdatedEvent;
+import com.watopi.chosen.client.event.*;
 import com.watopi.chosen.client.resources.ChozenCss;
 import com.watopi.chosen.client.resources.Resources;
 
@@ -614,7 +602,7 @@ public class ChosenImpl {
       case 13: // enter
         if (resultsShowing) {
           e.preventDefault();
-          return false;
+            return false;
         }
         return true;
 
@@ -678,6 +666,7 @@ public class ChosenImpl {
         if (resultsShowing) {
           resultSelect(e);
         }
+        eventBus.fireEvent(new EnterKeyPressEvent(stroke, getSearchText()));
         return true;
       case 27: // escape
         if (resultsShowing) {
@@ -1488,6 +1477,12 @@ public class ChosenImpl {
 
     private boolean isNullOrEmpty(String value) {
         return (value == null || value.length() < 1);
+    }
+
+    private String getSearchText() {
+        String searchText = defaultText.equals(searchField.val()) ? "" : searchField.val().trim();
+        searchText = SafeHtmlUtils.htmlEscape(searchText);
+        return searchText;
     }
 
 }
