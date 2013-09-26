@@ -874,7 +874,14 @@ public class ChosenImpl {
             if (isMultiple) {
                 choiceBuild(item);
             } else {
-                selectedItem.find("span").html(buildContent(item.getIcon(), item.getText()).asString());
+                if (item instanceof GroupItem){
+                    selectedItem.find("span").html(
+                            buildContent(item.getIcon(), ((GroupItem) item).getLabel()).asString());
+                } else {
+                    selectedItem.find("span").html(
+                            buildContent(item.getIcon(), item.getText()).asString()
+                    );
+                }
                 if (allowSingleDeselect) {
                     singleDeselectControlBuild();
                 }
@@ -1405,9 +1412,9 @@ public class ChosenImpl {
                         // Search only text, but display for option html
                         String text;
                         if (searchText.length() > 0) {
-                            text = zregex.replace(option.getHtml(), "<em>$1</em>");
+                            text = zregex.replace(result.html(), "<em>$1</em>");
                         } else {
-                            text = option.getHtml();
+                            text = result.html();
                         }
 
                         result.html(text);

@@ -235,7 +235,7 @@ public class SelectParser {
         item.label = group.getLabel();
         item.children = 0;
         item.setDisabled(group.isDisabled());
-        item.setValue(group.getAttribute("groupid"));
+        item.setValue(group.getAttribute("id"));
 
         if (group.getClassName() != null) {
             item.setClasses(group.getClassName());
