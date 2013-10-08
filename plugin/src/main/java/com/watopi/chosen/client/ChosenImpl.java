@@ -1412,7 +1412,8 @@ public class ChosenImpl {
                         // Search only text, but display for option html
                         String text;
                         if (searchText.length() > 0) {
-                            text = zregex.replace(result.html(), "<em>$1</em>");
+                            text = result.html(); // GCJ Removed highlighting has bugs with e or m type searches.
+                                                  //     zregex.replace(result.html(), "<em>$1</em>");
                         } else {
                             text = result.html();
                         }
